@@ -1,0 +1,7 @@
+#!/bin/sh
+
+echo "Destroying MUC rooms that have not been used for 90 days:"	>> /var/log/ejabberd/unused_rooms
+/usr/sbin/ejabberdctl rooms_unused_destroy jabber.rwth-aachen.de 90	>> /var/log/ejabberd/unused_rooms
+echo "These MUC rooms will most likely be destroyed within 10 days:"	>> /var/log/ejabberd/unused_rooms
+/usr/sbin/ejabberdctl rooms_unused_list jabber.rwth-aachen.de 80	>> /var/log/ejabberd/unused_rooms
+

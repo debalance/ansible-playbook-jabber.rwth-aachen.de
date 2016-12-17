@@ -1,0 +1,57 @@
+{% load i18n static canonical %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">{% trans "Language" %}</h3>
+  </div>
+  <ul class="list-group">
+  {% for code, name in other_langs %}
+    {% language code %}
+    <li class="list-group-item">
+        <img src="{% static "core/img/" %}{{ code }}.svg" class="bullet"> <a href="{% url "core:api-set-lang" %}?lang={{ code }}&next={{ request.get_full_path|urlencode }}" rel="nofollow">{{ name }}</a>
+    </li>
+    {% endlanguage %}
+  {% endfor %}
+  </ul>
+</div>
+
+<div class="panel panel-default follow-panel">
+  <div class="panel-heading">
+    <h3 class="panel-title">{% trans "Updates" %}</h3>
+  </div>
+  <div class="panel-body"><p>{% trans "If you use our server, we strongly encourage you to stay up to date." %}</p></div>
+  <ul class="list-group">
+    <li class="list-group-item">
+        <a href="{% url "feed:rss2" language=LANGUAGE_CODE %}">
+            <img src="{% static "core/img/rss.svg" %}" class="bullet">RSS feed</a>
+    </li>
+    <li class="list-group-item">
+        <a href="{% url "feed:atom" language=LANGUAGE_CODE %}">
+            <img src="{% static "core/img/rss.svg" %}" class="bullet">Atom feed</a>
+    </li>
+  </ul>
+</div>
+
+<div class="panel panel-default follow-panel">
+  <div class="panel-heading">
+    <h3 class="panel-title">{% trans "More from RWTH Aachen University" %}</h3>
+  </div>
+  <ul class="list-group">
+    <li class="list-group-item">
+        <a href="https://twitter.com/rwth">
+            <img src="{% static "core/img/smtw.svg" %}" class="bullet">@RWTH</a>
+    </li>
+    <li class="list-group-item">
+        <a href="https://facebook.com/RWTHAachenUniversity">
+            <img src="{% static "core/img/629hwmjt.svg" %}" class="bullet">/RWTHAachenUniversity</a>
+    </li>
+    <li class="list-group-item">
+        <a href="http://blog.rwth-aachen.de/itc/">
+            <img src="{% static "core/img/rss.svg" %}" class="bullet">IT Center Blog</a>
+    </li>
+    <li class="list-group-item">
+        <a href="http://blog.rwth-aachen.de/">
+            <img src="{% static "core/img/rss.svg" %}" class="bullet">RWTH-Blogs</a>
+    </li>
+  </ul>
+</div>

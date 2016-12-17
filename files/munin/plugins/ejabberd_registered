@@ -1,0 +1,102 @@
+#!/bin/sh
+# 
+# Plugin to count the registered users on an ejabberd server
+#
+# INFO: needs ejabberd 1.1.2
+#
+# Author: Mathias Ertl <mati@fsinf.at>
+#
+#%# family=auto
+#%# capabilities=autoconf
+
+#####################
+### DOCUMENTATION ###
+#####################
+#
+# Monitor the number of registered users on a given node. If no node is given
+# the default of ejabberdctl is assumened.
+#
+# Parameters
+#	node		- monitor this node instead of the ejabberd default.
+#				(optional!)
+# 	vhosts 		- monitor the given vhosts on that node. A total of the
+#				entire node is drawn unless you set no_total
+#				(see below)
+#	ejabberdctl	- path to ejabberdctl (default is /usr/sbin/ejabberdctl)
+#       no_total        - Do not include a total value (ignored if vhosts is not
+#				set)
+#
+# WARNING: This usually has to run as user & group ejabberd.
+#
+# Example:
+# 	[ejabberd_registered]
+#	user ejabberd
+#	group ejabberd
+#	env.vhosts jabber.fsinf.at fsinf.at
+
+if [ "$1" = "autoconf" ]; then
+	echo yes
+	exit 0
+fi
+
+# if node is not set, it might be set in /etc/default/ejabberd
+if [ -z "$node" ]; then
+	if [ -f /etc/default/ejabberd ]; then
+		. /etc/default/ejabberd
+		if [ -n "$ERLANG_NODE" ]; then
+			node=$ERLANG_NODE
+		fi
+	fi
+fi
+
+if [ "$1" = "config" ]; then
+	# graph-info
+	echo "graph_title ejabberd registered users
+graph_args --base 1000 -l 0
+graph_vlabel users
+graph_scale no
+graph_category ejabberd"
+	if [ -z "$vhosts" -o -z "$no_total" ]; then
+		echo "total.label Total
+total.info Total users registered on this node"
+	fi
+
+	if [ -z $node ]; then
+		echo "graph_info Number of users registered on this server"
+	else
+		echo "graph_info Number of users registered on $info"
+	fi
+	
+	# info for each vhost
+	for i in $vhosts; do
+		name=$(echo $i | sed 's/\./_/g')
+		echo "vhost_$name.label $i
+vhost_$name.info Registered users on $i"
+	done
+	exit 0
+fi
+
+# set path to ejabberdctl
+if [ -z "$ejabberdctl" ]; then
+	ejabberdctl='/usr/sbin/ejabberdctl'
+fi
+
+# optionally set params:
+if [ -n "$node" ]; then
+	params="--node $node"
+fi
+
+total=0
+
+if [ -z "$vhosts" -o -z "$no_total" ]; then
+	# get total users: BUGFIX, see: https://support.process-one.net/browse/EJAB-914
+	echo -n "total.value "
+	$ejabberdctl $params stats registeredusers
+fi
+
+# get users for vhosts:
+for i in $vhosts; do
+	name=$(echo $i | sed 's/\./_/g')
+	value=$($ejabberdctl $params stats_host registeredusers $i)
+	echo "vhost_$name.value $value"
+done

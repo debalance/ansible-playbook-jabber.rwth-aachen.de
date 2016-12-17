@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+# Plugin to measure uptime of an ejabberd-node using ejabberdctl.
+# This is more or less based on the uptime-plugin shipping with munin.
+#
+# Configuration:
+#
+# [muc_count]
+# user ejabberd
+# group ejabberd
+# env.host example.com
+#
+# The host variable names the parameter passed to ejabberdctl
+#
+# Contributed by Mathias Ertl <mati@fsinf.at>
+#
+# $Log$
+# Revision 1.0  2008/12/22 17:58:39  mati
+# Added inital version
+#
+# Magic markers
+#
+#%# family=auto
+#%# capabilities=autoconf
+
+if [ "$1" = "autoconf" ]; then
+	which ejabberdctl > /dev/null
+	if [ $? -eq 0 ]; then
+		echo yes 
+		exit 0
+	else
+		echo 'no (ejabberdctl not found)'
+		exit 1
+	fi
+fi
+
+if [ -z "$hosts" ]; then
+    hosts=$(ejabberdctl registered_vhosts)
+fi
+
+clean_name() {
+    echo $1 | sed 's/[\/.-]/_/g'
+}
+
+if [ "$1" = "config" ]; then
+	echo 'graph_title Number of multi-user chats
+graph_args --base 1000 -l 0 
+graph_vlabel No. of rooms
+graph_category MUC'
+
+    for host in $hosts; do
+        label=`clean_name $host`
+        echo $label.label $host
+        echo $label.info Number of MUCs on $host
+    done
+
+	exit 0
+fi
+
+for host in $hosts; do
+    label=`clean_name $host`
+    echo $label.value $(ejabberdctl muc-online-rooms $host| wc -l)
+done

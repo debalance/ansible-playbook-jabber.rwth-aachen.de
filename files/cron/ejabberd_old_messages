@@ -1,0 +1,8 @@
+#!/bin/sh
+
+echo "Deleting stored offline messages older than 90 days:"		>> /var/log/ejabberd/old_messages
+/usr/sbin/ejabberdctl delete_old_messages 90				>> /var/log/ejabberd/old_messages
+
+echo "Deleting stored MAM chat messages older than 90 days:"		>> /var/log/ejabberd/old_messages
+/usr/sbin/ejabberdctl delete_old_mam_messages chat 90			>> /var/log/ejabberd/old_messages
+

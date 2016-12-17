@@ -1,0 +1,26 @@
+#!/bin/sh
+# -*- sh -*-
+
+#%# family=auto
+#%# capabilities=autoconf
+
+if [ "$1" = "autoconf" ]; then
+        echo yes
+        exit 0
+fi
+
+if [ "$1" = "config" ]; then
+        echo 'graph_title Number of read-only filesystems'
+        echo 'graph_args --base 1000 -l 0 '
+        echo 'graph_scale no'
+        echo 'graph_vlabel no'
+        echo 'graph_category disk'
+        echo 'number.label count'
+        echo 'number.critical :1'
+        echo 'number.info Number of read-only filesystems.'
+        exit 0
+fi
+
+echo -n 'number.value '
+egrep -v '(tmpfs|/sys|/proc|devpts|hugetlbfs|mqueue|rootfs)' /proc/mounts | grep -c '[,\s]ro[,\s]'
+exit 0

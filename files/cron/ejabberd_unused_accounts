@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo "Deleting user accounts that have not been used for a whole year:"	>> /var/log/ejabberd/unused_accounts
+/usr/sbin/ejabberdctl delete_old_users jabber.rwth-aachen.de 370	>> /var/log/ejabberd/unused_accounts
+

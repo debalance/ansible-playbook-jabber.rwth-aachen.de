@@ -1,0 +1,21 @@
+/var/log/ejabberd/*.log {
+	daily
+	rotate 7
+	compress
+	ifempty
+	create 640 ejabberd adm
+	olddir archive
+	sharedscripts
+	postrotate
+		/usr/sbin/ejabberdctl status > /dev/null && /usr/sbin/ejabberdctl reopen-log
+	endscript
+}
+
+/var/log/ejabberd/old_messages /var/log/ejabberd/unused_accounts /var/log/ejabberd/unused_rooms {
+	weekly
+	rotate 12
+	compress
+	ifempty
+	create 640 ejabberd adm
+	olddir archive
+}

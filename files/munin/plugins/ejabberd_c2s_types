@@ -1,0 +1,79 @@
+#!/usr/bin/python3
+#
+#%# family=auto
+#%# capabilities=autoconf
+
+import subprocess
+import sys
+
+if 'autoconf' in sys.argv:
+    print('yes')
+    sys.exit(0)
+elif 'config' in sys.argv:
+    print("""graph_title Ejabberd connection types
+graph_args --base 1000 -l 0
+graph_category ejabberd
+graph_info used connection features
+graph_vlabel users
+graph_scale no
+total.label total
+total.graph no
+tls.label TLS
+unencrypted.label Unencrypted
+ipv4.label IPv4
+ipv6.label IPv6
+http_bind.label HTTP Binding
+websocket.label Websocket
+unknown.label Unknown
+compressed.label compression
+ssl.label SSL""")
+    sys.exit(0)
+
+p = subprocess.Popen(['ejabberdctl', 'connected_users_info'], stdout=subprocess.PIPE)
+stdout = p.communicate()[0].decode('utf-8').strip().split("\n")
+
+total = len(stdout)
+ipv4 = 0
+ipv6 = 0
+compressed = 0
+tls = 0
+ssl = 0
+http_bind = 0
+unknown = 0
+websockets = 0
+unenc = 0
+
+for line in stdout:
+    jid, conn, ip, _ = line.split("\t", 3)
+    if 'tls' in conn:
+        tls += 1
+    elif 'ssl' in conn:
+        ssl += 1
+    elif conn == 'http_bind':
+        http_bind += 1
+    elif conn == 'websockets':
+        websockets += 1
+    elif conn == 'unknown':
+        unknown += 1
+    else:
+        unenc += 1
+
+    if 'compressed' in conn:
+        compressed += 1
+
+    if ip.startswith('::FFFF:'):
+        ipv4 += 1
+    else:
+        ipv6 += 1
+
+print("""total.value %s
+tls.value %s
+ssl.value %s
+unencrypted.value %s
+compressed.value %s
+ipv4.value %s
+ipv6.value %s
+http_bind.value %s
+websockets.value %s
+unknown.value %s""" % (total, tls, ssl, unenc, compressed, ipv4, ipv6, http_bind, websockets,
+                       unknown))

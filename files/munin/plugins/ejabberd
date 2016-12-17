@@ -1,0 +1,118 @@
+#!/bin/sh
+# 
+# Plugin to count the connections on an ejabberd server
+#
+# INFO: needs ejabberd 2.1.0 or newer
+#
+# Configuration:
+#
+# Only supported config-string is vhosts, which you can set if you want to
+# monitor how many users are online by vhost. Example
+# 
+# 	[ejabberd]
+# 	env.vhosts fsinf.at jabber.fsinf.at
+#
+# Author: Mathias Ertl <mati@fsinf.at>
+#	(original version by Christian Dröge <Christian@draugr.de>)
+#
+# changes since the original version
+#
+# 2010-05-02:
+# * support multiple vhosts with the vhosts setting
+#
+# befor next entry:
+# * adapted to ejabberd 2.1.0
+#
+#%# family=auto
+#%# capabilities=autoconf
+
+#####################
+### DOCUMENTATION ###
+#####################
+#
+# Monitor the number of registered users on a given node. If no node is given
+# the default of ejabberdctl is assumened.
+#
+# Parameters
+#       node            - monitor this node instead of the ejabberd default.
+#                               (optional!)
+#       ejabberdctl     - path to ejabberdctl (default is /usr/sbin/ejabberdctl)
+#
+# WARNING: This usually has to run as user & group ejabberd.
+#
+# Example:
+#       [ejabberd]
+#       user ejabberd
+#       group ejabberd
+
+if [ "$1" = "autoconf" ]; then
+	echo yes
+	exit 0
+fi
+
+# if node is not set, it might be set in /etc/default/ejabberd
+if [ -z "$node" ]; then
+        if [ -f /etc/default/ejabberd ]; then
+                . /etc/default/ejabberd
+                if [ -n "$ERLANG_NODE" ]; then
+                        node=$ERLANG_NODE
+                fi
+        fi
+fi
+
+if [ "$1" = "config" ]; then
+	echo 'graph_title ejabberd connections
+graph_args --base 1000 -l 0
+graph_vlabel connections
+graph_scale no
+graph_category ejabberd
+s2s_connections_out.label incoming s2s connections
+s2s_connections_in.label outgoing s2s connections
+connected_users.label connected users
+graph_info This graph shows a statistic of ejabberd 
+s2s_connections_out.info Number of outgoing server to server connections
+s2s_connections_in.info Number of incoming server to server connections
+connected_users.info Number of logged in users'
+	
+	if [ -n "$vhosts" ]; then
+		. /usr/share/munin/plugins/plugin.sh
+		for vhost in $vhosts; do
+			field=${vhost}_connected
+			field="$(clean_fieldname "$field")"
+			field_label="connected users - $vhost"
+			field_info="Number of logged in users on $vhost"
+			echo "$field.label $field_label"
+			echo "$field.info $field_info"
+		done
+	fi
+
+	exit 0
+fi
+
+# set path to ejabberdctl
+if [ -z "$ejabberdctl" ]; then
+	ejabberdctl='/usr/sbin/ejabberdctl'
+fi
+
+# optionally set params:
+if [ -n "$node" ]; then
+	params="--node $node"
+fi
+
+HOME=/var/lib/munin
+echo -n "s2s_connections_out.value "
+$ejabberdctl $params outgoing-s2s-number
+echo -n "s2s_connections_in.value "
+$ejabberdctl $params incoming-s2s-number
+echo -n "connected_users.value "
+$ejabberdctl $params connected-users-number
+
+if [ -n "$vhosts" ]; then
+	. /usr/share/munin/plugins/plugin.sh
+	for vhost in $vhosts; do
+		field=${vhost}_connected
+		field="$(clean_fieldname "$field")"
+		echo -n "$field.value "
+		$ejabberdctl $params stats_host onlineusers $vhost
+	done
+fi
