@@ -16,6 +16,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Normal Django configuration #
 ###############################
 
+TIME_ZONE = 'Europe/Berlin'
+
 # Database configuration
 # See also: https://docs.djangoproject.com/en/1.10/ref/databases/
 DATABASES = {
@@ -61,7 +63,7 @@ SECRET_KEY = 'whatever'
 # The copyright notice at the bottom of the page. "%(year)s is replaced with the current year, and
 # "%(brand)s" is replaced with the "BRAND" key of the current site.
 #COPYRIGHT_NOTICE = _('© %(year)s, %(brand)s.')
-COPYRIGHT_NOTICE = _('© %(year)s, RWTH Aachen University.')
+COPYRIGHT_NOTICE = _('© 2016-%(year)s, RWTH Aachen University.')
 
 MIN_USERNAME_LENGTH = 5
 MAX_USERNAME_LENGTH = 32
@@ -122,6 +124,15 @@ LIBRARY_LOG_LEVEL = 'WARN'
 # Connection to the XMPP server.
 XMPP_BACKENDS = {
     'default': {
+#        'BACKEND': 'xmpp_backends.ejabberd_rest.EjabberdRestBackend',
+        'BACKEND': 'groups.xmpp_backend.EjabberdRestBackendRWTH',
+        'uri': 'http://127.0.0.1:5282/api/',
+        'auth': (
+            'admin@jabber.rwth-aachen.de',
+            'PutYourPasswordHere',
+        ),
+    },
+    'xmlrpc': {
         'BACKEND': 'xmpp_backends.ejabberd_xmlrpc.EjabberdXMLRPCBackend',
         'uri': 'http://localhost:4560',
         'user': 'admin',
@@ -290,7 +301,7 @@ GPG_KEYDIR = '/srv/django/gnupg'
 #
 #GPG_BACKENDS = {
 #    'default': {
-#        'BACKEND': 'gpgmime.gpgme.GpgMeBackend',
+#        'BACKEND': 'gpgliblib.gpgme.GpgMeBackend',
 #        'HOME': os.path.join(ROOT_DIR, 'gnupg'),
 #        # Optional settings:
 #        'PATH': '/home/...',  # Path to 'gpg' binary
@@ -343,3 +354,43 @@ XMPP_HTTP_UPLOAD_SHARE_TIMEOUT = 86400 * 31
 
 # Top-level domain to use
 XMPP_HTTP_UPLOAD_URL_BASE = 'https://jabber.rwth-aachen.de'
+
+
+#####################
+# Account user menu #
+#####################
+ACCOUNT_USER_MENU = [
+    ('account:detail', {
+        'title': _('Overview'),
+        'requires_confirmation': False,
+    }),
+    ('account:sessions', {
+        'title': _('Current sessions'),
+    }),
+    ('groups:overview', {
+        'title': _('Group settings'),
+        'requires_confirmation': False,
+    }),
+    ('account:notifications', {
+        'title': _('Notifications'),
+    }),
+    ('account:set_password', {
+        'title': _('Set password'),
+    }),
+    ('account:set_email', {
+        'title': _('Set E-Mail'),
+    }),
+    ('account:xep0363', {
+        'title': _('HTTP uploads'),
+    }),
+    ('account:gpg', {
+        'title': _('GPG keys'),
+    }),
+    ('account:log', {
+        'title': _('Recent activity'),
+        'requires_confirmation': False,
+    }),
+    ('account:delete', {
+        'title': _('Delete account'),
+    }),
+]

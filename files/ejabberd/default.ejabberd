@@ -48,7 +48,7 @@
 # Default: not defined
 # Example: 4200-4210
 #
-#FIREWALL_WINDOW=
+FIREWALL_WINDOW=4200-4220
 
 #.
 #' INET_DIST_INTERFACE: IP address where this Erlang node listens other nodes
@@ -58,7 +58,7 @@
 #
 # Default: 0.0.0.0
 #
-#INET_DIST_INTERFACE=127.0.0.1
+INET_DIST_INTERFACE=127.0.0.1
 
 #.
 #' ERL_EPMD_ADDRESS: IP addresses where epmd listens for connections
@@ -88,7 +88,7 @@ ERL_EPMD_ADDRESS=127.0.0.1
 # Default: 250000
 # Maximum: 268435456
 #
-#ERL_PROCESSES=250000
+ERL_PROCESSES=2500000
 
 #.
 #' ERL_MAX_ETS_TABLES: Maximum number of ETS and Mnesia tables

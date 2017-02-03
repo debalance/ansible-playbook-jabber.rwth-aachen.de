@@ -1,0 +1,61 @@
+{% extends "account/form-base.html" %}
+{% load i18n canonical %}
+
+{% block title %}{% trans "Register" %}{% endblock title %}
+
+{% block form %}
+<p>
+{% blocktrans with domain=site.NAME %}
+By registering an account on {{ domain }} <strong>you agree to our <a href="/p/gtc/">Terms of Service / GTC</a></strong>.
+You must have access to <strong>a valid email address of one of the Aachen universities</strong> to prove that you are eligible for an account.
+You will receive an email to confirm the address provided, click on the link in the email to complete your registration.
+{% endblocktrans %}
+</p>
+<div class="alert alert-info alert-dismissable with-header" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h5><strong>{% trans "Why do we require your email address?" %}</strong></h5>
+{% blocktrans %}By default, the email address is used only if you want to reset your
+password or if your account hasn't been used for a year and is about to be
+removed.{% endblocktrans %}
+</div>
+<form enctype="multipart/form-data" class="form-horizontal" action="" method="post">{% csrf_token %}
+{{ form.username.formgroup }}
+{{ form.email.formgroup }}
+
+<div class="row gpg-header-row{% if form.show_gpg %} show-gpg{% endif %}">
+    <div class="col-sm-12">
+        <h4>
+            <span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span>
+            <span class="glyphicon glyphicon-menu-down" aria-hidden="true"></span>
+            {% trans "GPG options" %}
+        </h4>
+    </div>
+</div>
+
+<div class="gpg-content{% if form.show_gpg %} show-gpg{% endif %}">
+    <div class="row"><div class="col-sm-12">
+        <div class="help-block"><p>
+            {% blocktrans with domain=site.NAME %}You can add a GPG key to have {{ domain }} encrypt all emails sent to you.{% endblocktrans %}</p>
+            <div class="alert alert-warning" role="alert">
+{% blocktrans %}<strong>Warning:</strong> Please note the obvious: If you ever loose your
+GPG key and do not upload a new one here, you can no longer read any emails
+(e.g. when you have forgotton your password) we send to you.{% endblocktrans %}
+            </div>
+        </p></div>
+    </div></div>
+
+
+    {{ form.gpg_fingerprint.formgroup }}
+    <div class="row"><div class="col-sm-10 col-sm-offset-2"><p><strong>{% trans "- and/or -" %}</strong></p></div></div>
+    {{ form.gpg_key.formgroup }}
+</div>
+{{ form.captcha.formgroup }}
+
+
+<div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+        <button type="submit" class="btn btn-default">{% trans "Register" %}</button>
+    </div>
+</div>
+</form>
+{% endblock form %}

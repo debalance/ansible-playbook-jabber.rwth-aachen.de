@@ -1,0 +1,1 @@
+django ALL=(ALL) NOPASSWD: /usr/sbin/ejabberdctl srg_get_info *

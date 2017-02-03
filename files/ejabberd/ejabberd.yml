@@ -19,6 +19,29 @@ define_macro:
     - "no_sslv3"
     - "cipher_server_preference"
     - "no_compression"
+  'API_COMMANDS':
+    - change_password
+    - check_account
+    - check_password
+    - get_last
+    - kick_session
+    - register
+    - registered_users
+    - send_message
+    - set_last
+    - srg_create
+    - srg_delete
+    - srg_get_info
+    - srg_get_members
+    - srg_list
+    - srg_user_add
+    - srg_user_del
+    - stats
+    - stats_host
+    - unregister
+    - user_sessions_info
+
+language: "en"
 
 loglevel: 4
 log_rate_limit: 100
@@ -44,29 +67,17 @@ listen:
     module: ejabberd_xmlrpc
     maxsessions: 10
     timeout: 5000
+    access: xmlrpc
     access_commands:
       xmlrpc:
-        commands:
-          - change_password
-          - check_account
-          - check_password
-          - get_last
-          - kick_session
-          - register
-          - registered_users
-          - send_message
-          - set_last
-          - stats
-          - stats_host
-          - unregister
-          - user_sessions_info
+        commands: 'API_COMMANDS'
         options: []
   -
     port: 5222
     ip: "::"
     starttls_required: true
     module: ejabberd_c2s
-    access: c2s
+    access: local
     backlog: 'BACKLOG'
     certfile: 'CERTFILE'
     ciphers: 'CIPHERS'
@@ -83,7 +94,7 @@ listen:
     ip: "::"
     tls: true
     module: ejabberd_c2s
-    access: c2s
+    access: local
     backlog: 'BACKLOG'
     certfile: 'CERTFILE'
     ciphers: 'CIPHERS'
@@ -118,6 +129,13 @@ listen:
       "/http-bind": mod_http_bind
       "/websocket": ejabberd_http_ws
   -
+    port: 5282
+    ip: "127.0.0.1"
+    module: ejabberd_http
+    request_handlers:
+      "/api": mod_http_api
+      "/oauth": ejabberd_oauth
+  -
     port: 5285
     ip: "::"
     tls: true
@@ -134,6 +152,7 @@ listen:
 outgoing_s2s_families:
   # - ipv6
   - ipv4
+
 s2s_access: all
 s2s_use_starttls: optional
 s2s_certfile: 'CERTFILE'
@@ -168,53 +187,77 @@ shaper:
 acl:
   admin:
     user:
-      - "admin@jabber.rwth-aachen.de"
-      - "philipp.huebner@jabber.rwth-aachen.de"
+      - "admin": "jabber.rwth-aachen.de"
+      - "boettcher.rz": "jabber.rwth-aachen.de"
+      - "philipp.huebner": "jabber.rwth-aachen.de"
+      - "tobias.alt": "jabber.rwth-aachen.de"
+  api:
+    user:
+      - "admin": "jabber.rwth-aachen.de"
+  banned_servers:
+    server:
+      - "syriatalk.org"
+      - "exploit.im"
+  blocked:
+    server:
+      - "syriatalk.org"
+      - "exploit.im"
+    user:
+      - "webmaster"
+      - "root"
+      - "postmaster"
+      - "jabber"
+      - "hostmaster"
+      - "ejabberd"
   local:
-    user_regexp: ""
+    server:
+      - "jabber.rwth-aachen.de"
   loopback:
     ip:
       - "127.0.0.0/8"
       - "::1"
   xmlrpc:
     user:
-      - "admin@jabber.rwth-aachen.de"
+      - "admin": "jabber.rwth-aachen.de"
 
-shaper_rules:
-  max_s2s_connections: 3
-  max_user_sessions: 10
-  max_user_offline_messages:
-    - 5000: admin
-    - 1000
-  c2s_shaper:
-    - none: admin
-    - normal
-  s2s_shaper: fast
-
-access_rules:
-  local:
-    - allow: local
-  c2s:
-    - deny: blocked
-    - allow
-  announce:
-    - allow: admin
+access:
+  admin:
+    blocked: deny
+    admin: allow
+  api:
+    api: allow
   configure:
-    - allow: admin
-  register:
-    - deny
-  trusted_network:
-    - allow: loopback
+    blocked: deny
+    admin: allow
+  max_s2s_connections:
+    all: 3
+  max_user_sessions:
+    all: 10
+  max_user_offline_messages:
+    admin: 5000
+    all: 1000
+  c2s_shaper:
+    admin: none
+    all: normal
+  s2s_shaper:
+    all: fast
   xmlrpc:
-    - allow: xmlrpc
+    xmlrpc: allow
+  local:
+    blocked: deny
+    local: allow
+  trusted_network:
+    loopback: allow
 
-language: "en"
+commands_admin_access: api
+commands:
+  - add_commands: 'API_COMMANDS'
 
 modules:
   mod_adhoc: {}
   mod_admin_extra: {}
   mod_announce:   # recommends mod_adhoc
-    access: announce
+    access: admin
   mod_blocking: {}   # requires mod_privacy
   mod_caps: {}
   mod_carboncopy: {}
@@ -311,9 +354,6 @@ modules:
       - "flat"
       - "pep"   # requires mod_caps
   mod_push: {}
-  mod_register:
-    registration_watchers:
-      - "philipp.huebner@jabber.rwth-aachen.de"
   mod_roster:
     versioning: true
     store_current_id: false

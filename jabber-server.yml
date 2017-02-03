@@ -19,6 +19,8 @@
   handlers:
    - name: apt-get update
      apt: update_cache=yes cache_valid_time=0
+   - name: Enable celery
+     command: /bin/systemctl enable celery.service
    - name: Reload systemd
      command: /bin/systemctl daemon-reload
    - name: Restart apache2
@@ -78,6 +80,7 @@
       - screen
       - tree
       - unattended-upgrades
+      - unp
       - vim
       - yamllint
    - name: Uninstall some unnecessary packages
@@ -243,12 +246,14 @@
    - name: Install homepage into /srv/django
      become: yes
      become_user: django
-     git: repo=https://github.com/debalance/hp.git dest=/srv/django update=yes force=yes version=rwth
+     git: repo=https://github.com/debalance/hp.git dest=/srv/django update=yes force=yes version=rwth+srg
      notify:
       - Restart uwsgi
       - Restart celery
    - name: Install favicon.ico
      copy: src=files/apache2/favicon.ico dest=/srv/www/jabber.rwth-aachen.de/favicon.ico
+   - name: Copy sudoers file for django
+     copy: src=files/django/sudoers dest=/etc/sudoers.d/django owner=root group=root mode=0440
    - name: Copy localsettings.py
      copy: src=files/django/localsettings.py dest=/srv/django/hp/hp/localsettings.py owner=root group=root mode=0644
      notify:
@@ -281,6 +286,8 @@
       - {src: sidebar.html,       dest: core/templates/core/include/sidebar.html}
       - {src: core-django.po,     dest: core/locale/de/LC_MESSAGES/django.po}
       - {src: blogpost_list.html, dest: blog/templates/blog/blogpost_list.html}
+      - {src: user_register.html, dest: account/templates/account/user_register.html}
+      - {src: account-django.po,  dest: account/locale/de/LC_MESSAGES/django.po}
      notify: Restart uwsgi
    - name: Execute django manage.py migrate
      become: yes
@@ -397,13 +404,14 @@
      register: command_result
      changed_when: "'Enabling site upload.' in command_result.stdout"
      notify: Restart apache2
-   - name: Enable celery
+   - name: Set up celery
      copy: src={{ item.src }} dest={{ item.dest }} owner=root group=root mode=0644
      with_items:
       - {src: files/celery/hp-celery.conf,     dest: /etc/default/celery}
       - {src: files/celery/hp-celery.service,  dest: /etc/systemd/system/celery.service}
       - {src: files/celery/hp-celery.tmpfiles, dest: /etc/tmpfiles.d/celery.conf}
      notify:
+      - Enable celery
       - Reload systemd
       - Restart celery
    - name: Create celery logfile

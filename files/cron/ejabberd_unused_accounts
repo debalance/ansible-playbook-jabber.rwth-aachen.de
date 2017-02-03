@@ -1,5 +1,8 @@
 #!/bin/sh
 
+/usr/sbin/ejabberdctl set_last admin jabber.rwth-aachen.de `/bin/date +%s` "Logged in via Cron."
+/usr/sbin/ejabberdctl set_last jabber.rwth-aachen.de jabber.rwth-aachen.de `/bin/date +%s` "Logged in via Cron."
+
 echo "Deleting user accounts that have not been used for a whole year:"	>> /var/log/ejabberd/unused_accounts
-/usr/sbin/ejabberdctl delete_old_users jabber.rwth-aachen.de 370	>> /var/log/ejabberd/unused_accounts
+/usr/sbin/ejabberdctl delete_old_users 370				>> /var/log/ejabberd/unused_accounts
 
