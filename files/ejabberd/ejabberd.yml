@@ -300,7 +300,7 @@ modules:
     min_message_interval: 0.4
     min_presence_interval: 4
     max_users_presence: 50
-    regexp_room_id: "^[a-z0-9]+$"
+    regexp_room_id: "^[A-Za-z0-9.,_-]+$"
     default_room_options:
       allow_change_subj: true
       allow_private_messages: true
