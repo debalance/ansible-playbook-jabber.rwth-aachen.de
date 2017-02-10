@@ -1,7 +1,38 @@
 #!/bin/sh
 
-echo "Destroying MUC rooms that have not been used for 90 days:"	>> /var/log/ejabberd/unused_rooms
-/usr/sbin/ejabberdctl rooms_unused_destroy jabber.rwth-aachen.de 90	>> /var/log/ejabberd/unused_rooms
-echo "These MUC rooms will most likely be destroyed within 10 days:"	>> /var/log/ejabberd/unused_rooms
-/usr/sbin/ejabberdctl rooms_unused_list jabber.rwth-aachen.de 80	>> /var/log/ejabberd/unused_rooms
+STATEDIR="/var/lib/ejabberd/mucs"
+TTL=90
+TTW=80
+LOG="/var/log/ejabberd/unused_rooms"
 
+set -e
+
+if [ `id -u` != 0 ]; then
+	echo "$0 must be executed as root!"
+	exit 1
+fi
+
+mkdir -p "$STATEDIR"
+
+for ROOM in `ejabberdctl muc_online_rooms jabber.rwth-aachen.de`; do
+	ROOMNAME=`echo "$ROOM" | cut -d "@" -f 1`
+	SERVICE=`echo "$ROOM" | cut -d "@" -f 2`
+	if [ `ejabberdctl get_room_occupants_number "$ROOMNAME" "$SERVICE"` -gt 0 ]; then
+		touch "$STATEDIR"/"$ROOM"
+	fi
+done
+
+echo "Destroying MUC rooms that have not been used for $TTL days:" >> "$LOG"
+for ROOM in `find "$STATEDIR" -type f -mtime "$TTL" -printf '%f\n'`; do
+	echo "$ROOM" >> "$LOG"
+	ROOMNAME=`echo "$ROOM" | cut -d "@" -f 1`
+	SERVICE=`echo "$ROOM" | cut -d "@" -f 2`
+	set +e
+	ejabberdctl destroy_room "$ROOMNAME" "$SERVICE" && rm "$STATEDIR"/"$ROOM"
+	set -e
+done
+
+echo "These MUC rooms will most likely be destroyed within `expr $TTL - $TTW` days:" >> "$LOG"
+for ROOM in `find "$STATEDIR" -type f -mtime "$TTW" -printf '%f\n'`; do
+	echo "$ROOM" >> "$LOG"
+done
