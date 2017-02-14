@@ -450,7 +450,7 @@
       - df_abs
       - ejabberd
       - ejabberd_active_users_7
-      - ejabberd_active_users_7
+      - ejabberd_active_users_30
       - ejabberd_c2s_types
       - ejabberd_registered
       - ejabberd_uptime
