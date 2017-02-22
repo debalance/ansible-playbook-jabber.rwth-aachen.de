@@ -102,7 +102,7 @@
    - name: Copy /etc/gai.conf to prefer IPv4 until IPv6 becomes available
      copy: src=files/gai.conf dest=/etc/gai.conf owner=root group=root mode=0644
    #
-   # Set up postfix
+   # Set up postfix:
    #
    - name: Install postfix
      apt: name=postfix state=latest
