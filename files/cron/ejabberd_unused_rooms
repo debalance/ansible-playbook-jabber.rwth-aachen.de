@@ -15,6 +15,9 @@ fi
 mkdir -p "$STATEDIR"
 
 for ROOM in `ejabberdctl muc_online_rooms jabber.rwth-aachen.de`; do
+	if [ ! -f "$STATEDIR"/"$ROOM" ]; then
+		touch "$STATEDIR"/"$ROOM"
+	fi
 	ROOMNAME=`echo "$ROOM" | cut -d "@" -f 1`
 	SERVICE=`echo "$ROOM" | cut -d "@" -f 2`
 	if [ `ejabberdctl get_room_occupants_number "$ROOMNAME" "$SERVICE"` -gt 0 ]; then
