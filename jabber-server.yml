@@ -147,8 +147,8 @@
    - name: Create mysql database for homepage
      mysql_db: name={{ homepage_mysql_db }} state=present
                login_user=root login_password={{ root_mysql_password }}
-   - name: Create mysql test database for homepage
-     mysql_db: name=test_{{ homepage_mysql_db }} state=present
+   - name: Remove mysql test database for homepage
+     mysql_db: name=test_{{ homepage_mysql_db }} state=absent
                login_user=root login_password={{ root_mysql_password }}
    - name: Delete anonymous MySQL server user for localhost
      mysql_user: user="" state=absent
