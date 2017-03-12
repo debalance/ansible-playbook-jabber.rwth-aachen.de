@@ -143,13 +143,13 @@
    - name: Create mysql database for ejabberd
      mysql_db: name={{ ejabberd_mysql_db }} state=present
                login_user=root login_password={{ root_mysql_password }}
+     notify: Initialize mysql database for ejabberd
    - name: Create mysql database for homepage
      mysql_db: name={{ homepage_mysql_db }} state=present
                login_user=root login_password={{ root_mysql_password }}
    - name: Create mysql test database for homepage
      mysql_db: name=test_{{ homepage_mysql_db }} state=present
                login_user=root login_password={{ root_mysql_password }}
-     notify: Initialize mysql database for ejabberd
    - name: Delete anonymous MySQL server user for localhost
      mysql_user: user="" state=absent
                  login_user=root login_password={{ root_mysql_password }}
@@ -191,8 +191,8 @@
      copy: src=files/ejabberd/ejabberd.yml dest=/etc/ejabberd/ejabberd.yml owner=ejabberd group=ejabberd mode=0440
      notify: Restart ejabberd
    - name: Enable ejabberd module s2s_log
-     command: creates=/etc/ejabberd/modules.d/mod_s2s_log.yml
-              cp /usr/share/doc/ejabberd-mod-s2s-log/conf/mod_s2s_log.yml /etc/ejabberd/modules.d/
+     command: cp /usr/share/doc/ejabberd-mod-s2s-log/conf/mod_s2s_log.yml /etc/ejabberd/modules.d/
+              creates=/etc/ejabberd/modules.d/mod_s2s_log.yml
      notify: Restart ejabberd
    - name: Run notified handlers right now
      meta: flush_handlers
@@ -334,75 +334,63 @@
      notify: Restart uwsgi
    - name: Enable Apache module 'cgi'
      command: /usr/sbin/a2enmod cgi
-     register: command_result
-     changed_when: "'Enabling module cgi.' in command_result.stdout"
+              creates=/etc/apache2/mods-enabled/cgi.load
      notify: Restart apache2
    - name: Enable Apache module 'headers'
      command: /usr/sbin/a2enmod headers
-     register: command_result
-     changed_when: "'Enabling module headers.' in command_result.stdout"
+              creates=/etc/apache2/mods-enabled/headers.load
      notify: Restart apache2
    - name: Enable Apache module 'macro'
      command: /usr/sbin/a2enmod macro
-     register: command_result
-     changed_when: "'Enabling module macro.' in command_result.stdout"
+              creates=/etc/apache2/mods-enabled/macro.load
      notify: Restart apache2
    - name: Enable Apache module 'proxy'
      command: /usr/sbin/a2enmod proxy
-     register: command_result
-     changed_when: "'Enabling module proxy.' in command_result.stdout"
+              creates=/etc/apache2/mods-enabled/proxy.load
      notify: Restart apache2
    - name: Enable Apache module 'rewrite'
      command: /usr/sbin/a2enmod rewrite
-     register: command_result
-     changed_when: "'Enabling module rewrite.' in command_result.stdout"
+              creates=/etc/apache2/mods-enabled/rewrite.load
      notify: Restart apache2
    - name: Enable Apache module 'ssl'
      command: /usr/sbin/a2enmod ssl
-     register: command_result
-     changed_when: "'Enabling module ssl.' in command_result.stdout"
+              creates=/etc/apache2/mods-enabled/ssl.load
      notify: Restart apache2
    - name: Disable Apache default config
      command: /usr/sbin/a2dissite 000-default
-     register: command_result
-     changed_when: "'Site 000-default disabled.' in command_result.stdout"
+              removes=/etc/apache2/sites-enabled/*default.conf
      notify: Restart apache2
    - name: Disable Apache default ssl config
      command: /usr/sbin/a2dissite default-ssl
-     register: command_result
-     changed_when: "'Site default-ssl disabled.' in command_result.stdout"
+              removes=/etc/apache2/sites-enabled/default-ssl.conf
      notify: Restart apache2
    - name: Configure Apache extra-security
      copy: src=files/apache2/extra-security.conf dest=/etc/apache2/conf-available/extra-security.conf
      notify: Restart apache2
    - name: Enable Apache macros
      command: /usr/sbin/a2enconf extra-security
-     register: command_result
-     changed_when: "'Enabling conf extra-security.' in command_result.stdout"
+              creates=/etc/apache2/conf-enabled/extra-security.conf
      notify: Restart apache2
    - name: Configure Apache macros
      copy: src=files/apache2/macros.conf dest=/etc/apache2/conf-available/macros.conf
      notify: Restart apache2
    - name: Enable Apache macros
      command: /usr/sbin/a2enconf macros
-     register: command_result
-     changed_when: "'Enabling conf macros.' in command_result.stdout"
+              creates=/etc/apache2/conf-enabled/macros.conf
      notify: Restart apache2
    - name: Configure Apache for jabber.rwth-aachen.de
      copy: src=files/apache2/jabber.conf dest=/etc/apache2/sites-available/jabber.conf
      notify: Restart apache2
    - name: Enable Apache site 'jabber'
      command: /usr/sbin/a2ensite jabber
-     register: command_result
-     changed_when: "'Enabling site jabber.' in command_result.stdout"
+              creates=/etc/apache2/sites-enabled/jabber.conf
      notify: Restart apache2
    - name: Configure Apache for upload.jabber.rwth-aachen.de
      copy: src=files/apache2/upload.conf dest=/etc/apache2/sites-available/upload.conf
      notify: Restart apache2
    - name: Enable Apache site 'upload'
      command: /usr/sbin/a2ensite upload
-     register: command_result
-     changed_when: "'Enabling site upload.' in command_result.stdout"
+              creates=/etc/apache2/sites-enabled/upload.conf
      notify: Restart apache2
    - name: Set up celery
      copy: src={{ item.src }} dest={{ item.dest }} owner=root group=root mode=0644
@@ -485,4 +473,12 @@
       - postfix
       - redis-server
       - uwsgi
+   - name: Execute django manage.py check
+     become: yes
+     become_user: django
+     django_manage: command=check virtualenv=/srv/django app_path=/srv/django/hp
+   - name: Execute django manage.py test
+     become: yes
+     become_user: django
+     django_manage: command=test virtualenv=/srv/django app_path=/srv/django/hp
 ...

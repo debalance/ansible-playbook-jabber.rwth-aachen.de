@@ -26,7 +26,7 @@ for ROOM in `ejabberdctl muc_online_rooms jabber.rwth-aachen.de`; do
 done
 
 echo "Destroying MUC rooms that have not been used for $TTL days:" >> "$LOG"
-for ROOM in `find "$STATEDIR" -maxdepth 1 -type f -mtime "$TTL" -printf '%f\n'`; do
+for ROOM in `find "$STATEDIR" -maxdepth 1 -type f -mtime +"$TTL" -printf '%f\n'`; do
 	echo "$ROOM" >> "$LOG"
 	ROOMNAME=`echo "$ROOM" | cut -d "@" -f 1`
 	SERVICE=`echo "$ROOM" | cut -d "@" -f 2`
@@ -36,6 +36,6 @@ for ROOM in `find "$STATEDIR" -maxdepth 1 -type f -mtime "$TTL" -printf '%f\n'`;
 done
 
 echo "These MUC rooms will most likely be destroyed within `expr $TTL - $TTW` days:" >> "$LOG"
-for ROOM in `find "$STATEDIR" -maxdepth 1 -type f -mtime "$TTW" -printf '%f\n'`; do
+for ROOM in `find "$STATEDIR" -maxdepth 1 -type f -mtime +"$TTW" -printf '%f\n'`; do
 	echo "$ROOM" >> "$LOG"
 done
