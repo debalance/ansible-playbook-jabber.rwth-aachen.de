@@ -7,6 +7,7 @@
 # TODO: use ansible-vault for passwords
 ---
 - hosts: jabber
+  any_errors_fatal: true
   vars:
    - ejabberd_admin_password: PutYourPasswordHere
    - ejabberd_mysql_db: ejabberd
@@ -123,18 +124,20 @@
    # Set up MySQL:
    #
    - name: Set MySQL root password before installing
-     debconf: name=mysql-server question=mysql-server/root_password value={{root_mysql_password | quote}} vtype=password
+     debconf: name=mariadb-server question=mariadb-server/root_password value={{root_mysql_password | quote}} vtype=password
      changed_when: False
    - name: Confirm MySQL root password before installing
-     debconf: name=mysql-server question=mysql-server/root_password_again value={{root_mysql_password | quote}} vtype=password
+     debconf: name=mariadb-server question=mariadb-server/root_password_again value={{root_mysql_password | quote}} vtype=password
      changed_when: False
    - name: Install DBMS
-     apt: name={{ item }} state=latest default_release=jessie-backports
+     apt: name={{ item }} state=latest
      with_items:
-      - mysql-server
-      - mysql-client
+      - mariadb-server
+      - mariadb-client
    - name: Install python-mysqldb (needed for Ansible's mysql_* modules)
      apt: name=python-mysqldb state=latest
+   - name: Create /usr/share/ejabberd
+     file: path=/usr/share/ejabberd state=directory
    - name: Copy ejabberd's mysql.sql to host
      copy: src=files/ejabberd/mysql.sql dest=/usr/share/ejabberd/mysql.sql owner=root group=root mode=0644
    - name: Remove the MySQL test database
@@ -162,6 +165,8 @@
    - name: Give privileges to mysql homepage user for test database
      mysql_user: name={{ homepage_mysql_user }} append_privs=True priv=test_{{ homepage_mysql_db }}.*:ALL
                  login_user=root login_password={{ root_mysql_password }}
+   - name: Run notified handlers right now
+     meta: flush_handlers
    #
    # Set up the XMPP server:
    #
@@ -332,6 +337,18 @@
    - name: Enable jabber.rwth-aachen.de in uwsgi
      file: src=/etc/uwsgi/apps-available/jabber.rwth-aachen.de.ini dest=/etc/uwsgi/apps-enabled/jabber.rwth-aachen.de.ini state=link
      notify: Restart uwsgi
+   - name: Disable Apache module 'cgid'
+     command: /usr/sbin/a2dismod cgid
+              removes=/etc/apache2/mods-enabled/cgid.load
+     notify: Restart apache2
+   - name: Disable Apache module 'mpm_event'
+     command: /usr/sbin/a2dismod mpm_event
+              removes=/etc/apache2/mods-enabled/mpm_event.load
+     notify: Restart apache2
+   - name: Enable Apache module 'mpm_prefork'
+     command: /usr/sbin/a2enmod mpm_prefork
+              creates=/etc/apache2/mods-enabled/mpm_prefork.load
+     notify: Restart apache2
    - name: Enable Apache module 'cgi'
      command: /usr/sbin/a2enmod cgi
               creates=/etc/apache2/mods-enabled/cgi.load
