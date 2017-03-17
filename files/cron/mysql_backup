@@ -35,7 +35,7 @@ fi
 DBS="$(/usr/bin/mysql --defaults-extra-file=$CONF -Bse 'show databases' | /bin/grep -Ev $IGNORE)"
 
 for DB in $DBS; do
-	if [ ! "$DB" == "ejabberd" ]; then
+	if [ ! "$DB" = "ejabberd" ]; then
 		/usr/bin/mysqldump --defaults-extra-file=$CONF --comments --dump-date --events --lock-tables $DB > $BACKUP_DIR/$DB.sql
 	fi
 done
