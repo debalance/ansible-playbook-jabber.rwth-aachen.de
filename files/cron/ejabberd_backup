@@ -1,0 +1,30 @@
+#!/bin/sh -e
+
+#
+# This script dumps the ejabberd database compressed into /var/backups/ejabberd/
+#
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+TARGET=/var/backups/ejabberd
+TIMESTAMP=$(date +"%F_%H")
+BACKUP_DIR="$TARGET"
+
+mkdir -p $BACKUP_DIR
+chown -R ejabberd:ejabberd "$BACKUP_DIR"
+
+# Delete backups older than 10 days
+find $TARGET/ -type f -mtime +10 -delete
+
+if [ ! -d $BACKUP_DIR ] || [ ! -w $BACKUP_DIR ]; then
+	logger "$0 - Backup-Verzeichnis nicht beschreibbar";
+	echo "$0 - Backup-Verzeichnis nicht beschreibbar";
+	exit 1;
+fi
+
+/usr/sbin/ejabberdctl backup "$BACKUP_DIR/$TIMESTAMP"
+/bin/gzip --best "$BACKUP_DIR/$TIMESTAMP"
+
+logger "$0 - Backup $TIMESTAMP erfolgreich durchgefuehrt"
+
+exit 0

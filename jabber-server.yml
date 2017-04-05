@@ -211,7 +211,8 @@
       - {src: files/cron/ejabberd_old_messages,    dest: /etc/cron.daily/ejabberd_old_messages}
       - {src: files/cron/ejabberd_unused_accounts, dest: /etc/cron.daily/ejabberd_unused_accounts}
       - {src: files/cron/ejabberd_unused_rooms,    dest: /etc/cron.hourly/ejabberd_unused_rooms}
-      - {src: files/cron/mysql_backup,             dest: /etc/cron.daily/mysql_backup}
+      - {src: files/cron/ejabberd_backup,          dest: /etc/cron.hourly/ejabberd_backup}
+      - {src: files/cron/mysql_backup,             dest: /etc/cron.hourly/mysql_backup}
      notify: Restart cron
    - name: Create /var/log/ejabberd/archive
      file: path=/var/log/ejabberd/archive state=directory owner=root group=adm mode=0750

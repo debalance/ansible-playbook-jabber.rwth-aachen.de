@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 #
 # This script dumps all mysql databases compressed into /var/backups/mysql/
@@ -9,14 +9,8 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 TARGET=/var/backups/mysql
 IGNORE="information_schema|performance_schema"
 CONF=/etc/mysql/debian.cnf
-TIMESTAMP=$(date +"%Y-%m-%d")
+TIMESTAMP=$(date +"%F_%H")
 BACKUP_DIR="$TARGET/$TIMESTAMP"
-
-# Delete backups older than 10 days
-find $TARGET/ -type f -mtime +10 -delete
-find $TARGET/ -type d -empty -delete
-
-
 
 if [ ! -r $CONF ]; then
 	logger "$0 - auf $CONF konnte nicht zugegriffen werden";
@@ -32,11 +26,15 @@ if [ ! -d $BACKUP_DIR ] || [ ! -w $BACKUP_DIR ]; then
 	exit 1;
 fi
 
+# Delete backups older than 10 days
+find $TARGET/ -mindepth 2 -type f -mtime +10 -delete
+find $TARGET/ -mindepth 2 -type d -empty -delete
+
 DBS="$(/usr/bin/mysql --defaults-extra-file=$CONF -Bse 'show databases' | /bin/grep -Ev $IGNORE)"
 
 for DB in $DBS; do
 	if [ ! "$DB" = "ejabberd" ]; then
-		/usr/bin/mysqldump --defaults-extra-file=$CONF --comments --dump-date --events --lock-tables $DB > $BACKUP_DIR/$DB.sql
+		/usr/bin/mysqldump --defaults-extra-file=$CONF --comments --dump-date --events --lock-tables $DB | gzip > $BACKUP_DIR/$DB.sql.gz
 	fi
 done
 
