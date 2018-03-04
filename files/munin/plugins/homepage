@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ "$1" = "config" ]; then
+	/srv/django/bin/python /srv/django/hp/manage.py munin_plugin --config
+	exit 0
+fi
+
+/srv/django/bin/python /srv/django/hp/manage.py munin_plugin

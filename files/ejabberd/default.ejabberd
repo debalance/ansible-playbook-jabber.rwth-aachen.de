@@ -117,6 +117,7 @@ ERL_PROCESSES=2500000
 # Default: ""
 #
 #ERL_OPTIONS=""
+ERL_OPTIONS="-env ERL_CRASH_DUMP_BYTES 0"
 
 #.
 #' ERLANG_NODE: Erlang node name

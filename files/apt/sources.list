@@ -1,11 +1,11 @@
-# jessie
-deb http://ftp.halifax.rwth-aachen.de/debian/ jessie main
-deb-src http://ftp.halifax.rwth-aachen.de/debian/ jessie main
+# stretch
+deb http://ftp.halifax.rwth-aachen.de/debian/ stretch main
+deb-src http://ftp.halifax.rwth-aachen.de/debian/ stretch main
 
-# jessie/updates a.k.a. jessie security
-deb http://security.debian.org/ jessie/updates main
-deb-src http://security.debian.org/ jessie/updates main
+# stretch/updates a.k.a. stretch security
+deb http://security.debian.org/ stretch/updates main
+deb-src http://security.debian.org/ stretch/updates main
 
-# jessie-updates, previously known as 'volatile'
-deb http://ftp.halifax.rwth-aachen.de/debian/ jessie-updates main
-deb-src http://ftp.halifax.rwth-aachen.de/debian/ jessie-updates main
+# stretch-updates, previously known as 'volatile'
+deb http://ftp.halifax.rwth-aachen.de/debian/ stretch-updates main
+deb-src http://ftp.halifax.rwth-aachen.de/debian/ stretch-updates main
